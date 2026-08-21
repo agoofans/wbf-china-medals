@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071b2e" />
+    <meta name="description" content="基于WBF成绩数据库、公报与官方结果页整理的中国（CHN）世界桥牌奖牌档案。" />
+    <meta property="og:title" content="中国桥牌世界奖牌档案" />
+    <meta property="og:description" content="WBF正式世界锦标赛前三名中的中国选手、个人奖牌榜及历史修订轨迹。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="og.png" />
+    <title>中国桥牌世界奖牌档案</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="返回首页">
+        <span class="brand-mark">♠</span>
+        <span>中国桥牌世界奖牌档案</span>
+      </a>
+      <nav class="top-actions" aria-label="页面操作">
+        <a class="quiet-link" href="data/WBF-China-medals-source.xlsx" download>下载原始 Excel</a>
+        <a class="button button-light" href="#records">浏览数据</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">WORLD BRIDGE FEDERATION · CHINA</p>
+          <h1>中国桥牌<br /><span>世界奖牌档案</span></h1>
+          <p class="hero-lede">
+            从1991年至2026年，逐项核对WBF数据库、赛事结果页与官方公报，记录中国（CHN）选手在世界锦标赛正式项目中的前三名成绩。
+          </p>
+          <div class="hero-meta">
+            <span class="live-dot"></span>
+            <span>数据截至 <strong id="data-through">2026-08-20</strong></span>
+            <span class="meta-separator">·</span>
+            <span>香港、澳门、中华台北按独立NBO统计</span>
+          </div>
+        </div>
+        <aside class="gold-display" aria-label="中国金牌总数">
+          <span class="display-label">CURRENT GOLD TOTAL</span>
+          <strong id="hero-gold">24.00</strong>
+          <span class="display-unit">枚折算金牌</span>
+          <div class="display-rule"></div>
+          <p>以2023年官方累计为基准，加上其后可核验正式项目。跨国组合按CHN选手比例折算。</p>
+        </aside>
+      </section>
+
+      <section class="summary-shell" aria-labelledby="summary-title">
+        <div class="section-heading compact">
+          <div>
+            <p class="kicker">AT A GLANCE</p>
+            <h2 id="summary-title">截至最新完赛节点</h2>
+          </div>
+          <p id="latest-event" class="heading-note"></p>
+        </div>
+        <div class="medal-grid">
+          <article class="medal-card gold"><span>金牌</span><strong id="gold-total">24.00</strong><small>官方基准推算</small></article>
+          <article class="medal-card silver"><span>银牌</span><strong id="silver-total">35.92</strong><small>官方基准推算</small></article>
+          <article class="medal-card bronze"><span>铜牌</span><strong id="bronze-total">44.83</strong><small>官方基准推算</small></article>
+          <article class="medal-card total"><span>总计</span><strong id="medal-total">104.75</strong><small>Official-aligned estimate</small></article>
+        </div>
+        <div class="scope-note">
+          <strong>两套数字同时保留：</strong>
+          <span id="scope-note-text"></span>
+        </div>
+      </section>
+
+      <section class="feature-grid">
+        <article class="feature-card leaderboard-preview">
+          <div class="card-head">
+            <div><p class="kicker">LEADERS</p><h2>个人奖牌榜</h2></div>
+            <button class="text-button" data-jump="players">查看完整榜单 →</button>
+          </div>
+          <div id="leader-preview" class="leader-list"></div>
+        </article>
+        <article class="feature-card latest-preview">
+          <div class="card-head">
+            <div><p class="kicker">LATEST</p><h2>最近获奖记录</h2></div>
+            <button class="text-button" data-jump="events">全部赛事 →</button>
+          </div>
+          <div id="latest-preview" class="latest-list"></div>
+        </article>
+      </section>
+
+      <section id="records" class="records-section">
+        <div class="section-heading">
+          <div><p class="kicker">ARCHIVE</p><h2>可检索档案</h2></div>
+          <p class="heading-note">所有成绩、名次和阵容以WBF英文数据库或官方结果页为准。</p>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="档案分类">
+          <button class="tab active" role="tab" aria-selected="true" data-tab="events">赛事明细</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="players">个人奖牌榜</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="names">中文姓名推断</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="history">历史修订</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="method">统计口径</button>
+        </div>
+
+        <section class="panel active" data-panel="events" aria-label="赛事明细">
+          <div class="filterbar">
+            <label class="search-field"><span>搜索</span><input id="event-search" type="search" placeholder="赛事、项目、队名或选手" /></label>
+            <label><span>奖牌</span><select id="event-medal"><option value="">全部</option><option>金牌</option><option>银牌</option><option>铜牌</option></select></label>
+            <label><span>年份</span><select id="event-year"><option value="">全部年份</option></select></label>
+            <label><span>阵容</span><select id="event-foreign"><option value="">全部</option><option value="是">含外籍队友</option><option value="否">全CHN阵容</option></select></label>
+            <button id="export-events" class="button button-dark">导出筛选结果</button>
+          </div>
+          <div class="result-line"><strong id="event-count"></strong><span>点击任一记录查看完整阵容与来源</span></div>
+          <div class="table-wrap"><table><thead><tr><th>时间 / 地点</th><th>赛事与项目</th><th>奖牌</th><th>获奖队 / 组合</th><th>中国份额</th></tr></thead><tbody id="event-table"></tbody></table></div>
+          <div id="event-cards" class="mobile-cards"></div>
+          <div class="pagination"><button id="event-prev">上一页</button><span id="event-page"></span><button id="event-next">下一页</button></div>
+        </section>
+
+        <section class="panel" data-panel="players" aria-label="个人奖牌榜">
+          <div class="filterbar player-filters">
+            <label class="search-field"><span>搜索</span><input id="player-search" type="search" placeholder="中文名或WBF英文名" /></label>
+            <label><span>姓名确定度</span><select id="player-confidence"><option value="">全部</option><option>高</option><option>中</option><option>低</option><option>空白</option></select></label>
+            <label><span>排序</span><select id="player-sort"><option value="rank">综合排名</option><option value="gold">金牌优先</option><option value="total">奖牌总数</option></select></label>
+          </div>
+          <div class="result-line"><strong id="player-count"></strong><span>个人奖牌数不做国家份额折算；每位获奖选手各记一次个人奖牌</span></div>
+          <div class="table-wrap"><table><thead><tr><th>排名</th><th>选手</th><th>中文名确定度</th><th>金</th><th>银</th><th>铜</th><th>总计</th></tr></thead><tbody id="player-table"></tbody></table></div>
+          <div id="player-cards" class="mobile-cards"></div>
+          <div class="pagination"><button id="player-prev">上一页</button><span id="player-page"></span><button id="player-next">下一页</button></div>
+        </section>
+
+        <section class="panel" data-panel="names" aria-label="中文姓名推断">
+          <div class="name-intro">
+            <div><p class="kicker">NAME MAPPING</p><h3>英文拼音—中文姓名最佳猜测</h3></div>
+            <div class="confidence-legend"><span class="confidence high">高</span><span class="confidence medium">中</span><span class="confidence low">低</span><span class="confidence blank">空白</span></div>
+          </div>
+          <p class="body-note">中文资讯仅用于姓名映射，不用于替代WBF赛果。高确定度通常有中文名单或报道与WBF阵容交叉；低确定度仅是可检索候选，不能视为身份确认。</p>
+          <div class="filterbar">
+            <label class="search-field"><span>搜索</span><input id="name-search" type="search" placeholder="英文名、中文名、队伍或依据" /></label>
+            <label><span>确定度</span><select id="name-confidence"><option value="">全部</option><option>高</option><option>中</option><option>低</option><option>空白</option></select></label>
+          </div>
+          <div class="result-line"><strong id="name-count"></strong><span>点击查看逐人推断依据、来源与保留意见</span></div>
+          <div id="name-grid" class="name-grid"></div>
+          <div class="pagination"><button id="name-prev">上一页</button><span id="name-page"></span><button id="name-next">下一页</button></div>
+        </section>
+
+        <section class="panel" data-panel="history" aria-label="历史修订">
+          <div class="history-intro"><p class="kicker">REVISION TRAIL</p><h3>WBF中国累计奖牌表的历史修订轨迹</h3><p>通过相邻公报累计表与当届正式赛果做差，区分“当届新增”“旧漏项回填”和“无法唯一归属的批量重算”。</p></div>
+          <div id="timeline" class="timeline"></div>
+          <div class="subsection"><h3>可归属赛事与未解批次</h3><div id="revision-grid" class="revision-grid"></div></div>
+        </section>
+
+        <section class="panel" data-panel="method" aria-label="统计口径">
+          <div class="method-grid">
+            <div><p class="kicker">METHODOLOGY</p><h3>什么被计入，什么被排除</h3><p class="body-note">网站忠实保留工作簿中的严格口径、官方对齐项和放宽口径候选，不通过选择性纳入边赛来“凑数”。</p></div>
+            <div id="method-list" class="method-list"></div>
+          </div>
+          <div class="subsection"><h3>截至2023马拉喀什的官方对齐</h3><div id="alignment-table" class="alignment-grid"></div></div>
+          <div class="subsection"><h3>放宽口径候选</h3><div id="candidate-grid" class="candidate-grid"></div></div>
+        </section>
+      </section>
+    </main>
+
+    <footer>
+      <div><strong>中国桥牌世界奖牌档案</strong><p>独立整理项目，不代表WBF或中国桥牌协会官方立场。</p></div>
+      <div><p>赛果与阵容：WBF数据库 / 官方公报</p><p>中文姓名：国内公开资讯交叉核对</p></div>
+    </footer>
+
+    <dialog id="detail-dialog"><button class="dialog-close" aria-label="关闭">×</button><div id="dialog-content"></div></dialog>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
