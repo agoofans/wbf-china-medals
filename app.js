@@ -361,6 +361,7 @@ function showPlayer(englishName) {
 
 function setupDelegatedClicks() {
   document.addEventListener("click", (event) => {
+    if (event.target.closest("#feedback-form")) return;
     const eventTarget = event.target.closest("[data-event]");
     const playerTarget = event.target.closest("[data-player]");
     if (eventTarget) showEvent(eventTarget.dataset.event);
