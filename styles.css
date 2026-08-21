@@ -87,7 +87,7 @@ a { color: inherit; }
 .tab.active { color: white; background: var(--ink); }
 .panel { display: none; }.panel.active { display: block; }
 .filterbar { display: grid; grid-template-columns: minmax(240px, 1.6fr) repeat(3, minmax(130px, .6fr)) auto; gap: 10px; align-items: end; padding: 18px; background: var(--white); border: 1px solid var(--line); }
-.filterbar.player-filters { grid-template-columns: minmax(240px, 1.6fr) repeat(2, minmax(160px, .7fr)); }
+.filterbar.player-filters { grid-template-columns: minmax(240px, 1.6fr) minmax(160px, .7fr); }
 .filterbar label { display: grid; gap: 7px; color: #68727a; font-size: 11px; font-weight: 750; text-transform: uppercase; letter-spacing: .08em; }
 .filterbar input, .filterbar select { min-width: 0; height: 43px; padding: 0 12px; border: 1px solid #cfc8bc; color: var(--ink); background: #fffefa; outline: none; }
 .filterbar input:focus, .filterbar select:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(198,56,45,.1); }

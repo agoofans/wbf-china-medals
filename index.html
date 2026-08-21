@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#071b2e" />
     <meta name="description" content="基于WBF成绩数据库、公报与官方结果页整理的中国（CHN）世界桥牌奖牌档案。" />
     <meta property="og:title" content="中国桥牌世界奖牌档案" />
-    <meta property="og:description" content="WBF正式世界锦标赛前三名中的中国选手、个人奖牌榜及历史修订轨迹。" />
+    <meta property="og:description" content="WBF正式世界锦标赛前三名中的中国选手、个人奖牌榜与可检索赛事档案。" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="og.png" />
     <title>中国桥牌世界奖牌档案</title>
@@ -19,7 +19,6 @@
         <span>中国桥牌世界奖牌档案</span>
       </a>
       <nav class="top-actions" aria-label="页面操作">
-        <a class="quiet-link" href="data/WBF-China-medals-source.xlsx" download>下载原始 Excel</a>
         <a class="button button-light" href="#records">浏览数据</a>
       </nav>
     </header>
@@ -94,8 +93,6 @@
         <div class="tabs" role="tablist" aria-label="档案分类">
           <button class="tab active" role="tab" aria-selected="true" data-tab="events">赛事明细</button>
           <button class="tab" role="tab" aria-selected="false" data-tab="players">个人奖牌榜</button>
-          <button class="tab" role="tab" aria-selected="false" data-tab="names">中文姓名推断</button>
-          <button class="tab" role="tab" aria-selected="false" data-tab="history">历史修订</button>
           <button class="tab" role="tab" aria-selected="false" data-tab="method">统计口径</button>
         </div>
 
@@ -116,34 +113,12 @@
         <section class="panel" data-panel="players" aria-label="个人奖牌榜">
           <div class="filterbar player-filters">
             <label class="search-field"><span>搜索</span><input id="player-search" type="search" placeholder="中文名或WBF英文名" /></label>
-            <label><span>姓名确定度</span><select id="player-confidence"><option value="">全部</option><option>高</option><option>中</option><option>低</option><option>空白</option></select></label>
             <label><span>排序</span><select id="player-sort"><option value="rank">综合排名</option><option value="gold">金牌优先</option><option value="total">奖牌总数</option></select></label>
           </div>
           <div class="result-line"><strong id="player-count"></strong><span>个人奖牌数不做国家份额折算；每位获奖选手各记一次个人奖牌</span></div>
-          <div class="table-wrap"><table><thead><tr><th>排名</th><th>选手</th><th>中文名确定度</th><th>金</th><th>银</th><th>铜</th><th>总计</th></tr></thead><tbody id="player-table"></tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>排名</th><th>选手</th><th>金</th><th>银</th><th>铜</th><th>总计</th></tr></thead><tbody id="player-table"></tbody></table></div>
           <div id="player-cards" class="mobile-cards"></div>
           <div class="pagination"><button id="player-prev">上一页</button><span id="player-page"></span><button id="player-next">下一页</button></div>
-        </section>
-
-        <section class="panel" data-panel="names" aria-label="中文姓名推断">
-          <div class="name-intro">
-            <div><p class="kicker">NAME MAPPING</p><h3>英文拼音—中文姓名最佳猜测</h3></div>
-            <div class="confidence-legend"><span class="confidence high">高</span><span class="confidence medium">中</span><span class="confidence low">低</span><span class="confidence blank">空白</span></div>
-          </div>
-          <p class="body-note">中文资讯仅用于姓名映射，不用于替代WBF赛果。高确定度通常有中文名单或报道与WBF阵容交叉；低确定度仅是可检索候选，不能视为身份确认。</p>
-          <div class="filterbar">
-            <label class="search-field"><span>搜索</span><input id="name-search" type="search" placeholder="英文名、中文名、队伍或依据" /></label>
-            <label><span>确定度</span><select id="name-confidence"><option value="">全部</option><option>高</option><option>中</option><option>低</option><option>空白</option></select></label>
-          </div>
-          <div class="result-line"><strong id="name-count"></strong><span>点击查看逐人推断依据、来源与保留意见</span></div>
-          <div id="name-grid" class="name-grid"></div>
-          <div class="pagination"><button id="name-prev">上一页</button><span id="name-page"></span><button id="name-next">下一页</button></div>
-        </section>
-
-        <section class="panel" data-panel="history" aria-label="历史修订">
-          <div class="history-intro"><p class="kicker">REVISION TRAIL</p><h3>WBF中国累计奖牌表的历史修订轨迹</h3><p>通过相邻公报累计表与当届正式赛果做差，区分“当届新增”“旧漏项回填”和“无法唯一归属的批量重算”。</p></div>
-          <div id="timeline" class="timeline"></div>
-          <div class="subsection"><h3>可归属赛事与未解批次</h3><div id="revision-grid" class="revision-grid"></div></div>
         </section>
 
         <section class="panel" data-panel="method" aria-label="统计口径">

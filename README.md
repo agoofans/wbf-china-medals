@@ -17,8 +17,7 @@ GitHub 通常会在数分钟内生成公开网址。
 - `index.html`：页面结构与说明文字
 - `styles.css`：页面样式
 - `app.js`：筛选、分页、详情弹窗和 CSV 导出
-- `data.js`：由 Excel 工作簿生成的静态数据
-- `data/WBF-China-medals-source.xlsx`：网站使用的原始工作簿
+- `data.js`：由离线工作簿生成的静态数据
 - `og.png`：社交分享预览图
 
-更新数据时，替换 Excel 后重新生成 `data.js` 即可；网站本身不需要数据库。
+更新数据时，在本地重新生成并替换 `data.js` 即可；网站本身不需要数据库。
