@@ -157,11 +157,14 @@
           </div>
           <form id="feedback-form" class="feedback-form">
             <label><span>反馈类型</span><select id="feedback-type" required><option>数据错漏</option><option>补充中文姓名</option><option>补充赛事或来源</option><option>网站使用问题</option><option>其他</option></select></label>
-            <label><span>称呼（选填）</span><input id="feedback-name" type="text" maxlength="80" placeholder="您的姓名或昵称" /></label>
+            <label><span>称呼（选填）</span><input id="feedback-name" type="text" maxlength="80" autocomplete="name" placeholder="您的姓名或昵称" /></label>
             <label class="full-span"><span>简要标题</span><input id="feedback-subject" type="text" maxlength="160" required placeholder="例如：2018青年团体阵容可能漏了一位选手" /></label>
             <label class="full-span"><span>详细说明</span><textarea id="feedback-details" rows="6" maxlength="4000" required placeholder="请说明具体记录、建议修改内容，以及判断依据。"></textarea></label>
-            <label class="full-span"><span>资料链接（选填）</span><input id="feedback-source" type="url" maxlength="500" placeholder="https://…" /></label>
-            <div class="feedback-submit full-span"><button class="button button-dark" type="submit">前往 GitHub 提交反馈</button><small>提交后将打开 GitHub Issue 页面；登录 GitHub 后确认发送。</small></div>
+            <label><span>资料链接（选填）</span><input id="feedback-source" type="url" maxlength="500" inputmode="url" placeholder="https://…" /></label>
+            <label><span>联系邮箱（选填）</span><input id="feedback-email" type="email" maxlength="254" autocomplete="email" placeholder="方便需要时进一步核实" /></label>
+            <div class="feedback-botcheck" aria-hidden="true"><input id="feedback-botcheck" type="checkbox" tabindex="-1" autocomplete="off" /></div>
+            <div class="feedback-submit full-span"><button class="button button-dark" type="submit">提交反馈</button><small>无需登录；提交内容将直接发送给网站整理者。</small></div>
+            <p id="feedback-status" class="feedback-status full-span" role="status" aria-live="polite"></p>
           </form>
         </div>
       </section>

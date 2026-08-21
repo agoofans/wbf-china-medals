@@ -181,17 +181,56 @@ function renderMethod() {
 }
 
 function setupFeedbackForm() {
-  $("#feedback-form").addEventListener("submit", (event) => {
+  const form = $("#feedback-form");
+  const submitButton = form.querySelector('button[type="submit"]');
+  const status = $("#feedback-status");
+
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const type = $("#feedback-type").value;
     const subject = $("#feedback-subject").value.trim();
     const details = $("#feedback-details").value.trim();
-    const name = $("#feedback-name").value.trim() || "未填写";
+    const name = $("#feedback-name").value.trim() || "匿名访客";
     const source = $("#feedback-source").value.trim() || "未填写";
-    const title = `[网站反馈｜${type}] ${subject}`;
-    const body = [`### 反馈类型`, type, ``, `### 反馈内容`, details, ``, `### 资料链接`, source, ``, `### 反馈人`, name, ``, `### 提交页面`, window.location.href].join("\n");
-    const params = new URLSearchParams({ title, body });
-    window.location.href = `https://github.com/agoofans/wbf-china-medals/issues/new?${params.toString()}`;
+    const email = $("#feedback-email").value.trim();
+    const pageUrl = window.location.href;
+    const payload = {
+      access_key: "adcd238c-9845-4229-9af8-6a3cd7a54dd8",
+      subject: `[WBF奖牌档案反馈｜${type}] ${subject}`,
+      from_name: "中国桥牌世界奖牌档案",
+      name,
+      message: [`反馈类型：${type}`, `简要标题：${subject}`, "", "详细说明：", details, "", `资料链接：${source}`, `反馈人：${name}`, `联系邮箱：${email || "未填写"}`, `提交页面：${pageUrl}`].join("\n"),
+      feedback_type: type,
+      feedback_title: subject,
+      source_url: source,
+      page_url: pageUrl,
+      botcheck: $("#feedback-botcheck").checked ? "spam" : "",
+    };
+    if (email) payload.email = email;
+
+    submitButton.disabled = true;
+    submitButton.textContent = "正在提交…";
+    status.dataset.state = "pending";
+    status.textContent = "正在发送反馈，请稍候。";
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) throw new Error(result.message || "提交未成功");
+      form.reset();
+      status.dataset.state = "success";
+      status.textContent = "感谢反馈！内容已经成功提交。";
+    } catch (error) {
+      status.dataset.state = "error";
+      status.textContent = `提交失败：${error.message || "请稍后重试。"}`;
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = "提交反馈";
+    }
   });
 }
 
