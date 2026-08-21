@@ -180,18 +180,167 @@ function renderMethod() {
   $("#method-list").innerHTML = DATA.methodology.map((item) => `<article class="method-row"><strong>${escapeHtml(item.item)}</strong><p>${escapeHtml(item.rule)}</p><p>${escapeHtml(item.handling)}</p><div class="source-list inline-sources">${sourceLinks(item.source)}</div></article>`).join("");
 }
 
+const FEEDBACK_TYPE_LABELS = { name: "补充/更正中文姓名", data: "数据错漏", other: "其他" };
+
+function normalizeFeedbackPlayerName(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function matchFeedbackPlayer(value, allowUnique = false) {
+  const query = normalizeFeedbackPlayerName(value);
+  if (!query) return null;
+  const exact = DATA.players.find((player) => normalizeFeedbackPlayerName(player.englishName) === query);
+  if (exact || !allowUnique || query.length < 3) return exact || null;
+  const matches = DATA.players.filter((player) => normalizeFeedbackPlayerName(player.englishName).includes(query));
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function feedbackPlayerResults(player) {
+  const medalDetails = [["金", player.goldDetails], ["银", player.silverDetails], ["铜", player.bronzeDetails]];
+  const rows = medalDetails.flatMap(([medal, value]) => String(value || "").split("\n").filter(Boolean).map((item) => `<li><b>${medal}</b><span>${escapeHtml(item)}</span></li>`));
+  return `<div class="feedback-medal-summary">金 ${player.gold} · 银 ${player.silver} · 铜 ${player.bronze}</div><ul class="feedback-result-list">${rows.join("")}</ul>`;
+}
+
+function updateFeedbackNameRow(row, allowUnique = false) {
+  const playerInput = row.querySelector(".feedback-player-input");
+  const chineseInput = row.querySelector(".feedback-chinese-input");
+  const resultCell = row.querySelector(".feedback-player-results");
+  const player = matchFeedbackPlayer(playerInput.value, allowUnique);
+  playerInput.setCustomValidity("");
+  if (!player) {
+    row.dataset.player = "";
+    resultCell.innerHTML = playerInput.value.trim() ? `<span class="feedback-match-hint">请从建议名单中选择姓名拼音</span>` : `<span class="feedback-match-hint">选择后自动显示获奖成绩</span>`;
+    return null;
+  }
+  if (allowUnique) playerInput.value = player.englishName;
+  if (row.dataset.player !== player.englishName) chineseInput.value = player.bestChineseName || "";
+  row.dataset.player = player.englishName;
+  resultCell.innerHTML = feedbackPlayerResults(player);
+  return player;
+}
+
+function addFeedbackNameRow() {
+  const row = document.createElement("tr");
+  row.className = "feedback-name-row";
+  row.innerHTML = `<td><input class="feedback-player-input" type="text" list="feedback-player-options" maxlength="100" autocomplete="off" placeholder="输入姓名拼音" aria-label="WBF姓名拼音" /></td><td class="feedback-player-results"><span class="feedback-match-hint">选择后自动显示获奖成绩</span></td><td><input class="feedback-chinese-input" type="text" maxlength="40" autocomplete="off" placeholder="填写中文姓名" aria-label="中文姓名" /></td><td><button class="feedback-remove-name" type="button" aria-label="删除这一行">×</button></td>`;
+  $("#feedback-name-rows").append(row);
+  const playerInput = row.querySelector(".feedback-player-input");
+  playerInput.addEventListener("input", () => updateFeedbackNameRow(row));
+  playerInput.addEventListener("change", () => updateFeedbackNameRow(row, true));
+  row.querySelector(".feedback-chinese-input").addEventListener("input", (event) => event.currentTarget.setCustomValidity(""));
+  row.querySelector(".feedback-remove-name").addEventListener("click", () => {
+    const rows = $$("#feedback-name-rows .feedback-name-row");
+    if (rows.length === 1) {
+      row.dataset.player = "";
+      playerInput.value = "";
+      row.querySelector(".feedback-chinese-input").value = "";
+      updateFeedbackNameRow(row);
+    } else row.remove();
+  });
+  return row;
+}
+
+function resetFeedbackNameRows() {
+  $("#feedback-name-rows").innerHTML = "";
+  addFeedbackNameRow();
+}
+
+function syncFeedbackType() {
+  const isNameFeedback = $("#feedback-type").value === "name";
+  $("#feedback-name-section").hidden = !isNameFeedback;
+  $("#feedback-subject-field").hidden = isNameFeedback;
+  $("#feedback-subject").required = !isNameFeedback;
+  $("#feedback-details").required = !isNameFeedback;
+  $("#feedback-details-label").textContent = isNameFeedback ? "补充说明（选填）" : "详细说明";
+  $("#feedback-details").placeholder = isNameFeedback ? "可补充资料出处、同届比赛或搭档等判断依据。" : "请说明具体记录、建议修改内容，以及判断依据。";
+  $$("#feedback-name-rows input").forEach((input) => {
+    input.required = isNameFeedback;
+    if (!isNameFeedback) input.setCustomValidity("");
+  });
+}
+
+function collectFeedbackNameCorrections() {
+  const corrections = [];
+  for (const row of $$("#feedback-name-rows .feedback-name-row")) {
+    const playerInput = row.querySelector(".feedback-player-input");
+    const chineseInput = row.querySelector(".feedback-chinese-input");
+    const player = updateFeedbackNameRow(row, true);
+    playerInput.setCustomValidity(player ? "" : "请从建议名单中选择一位WBF选手");
+    chineseInput.setCustomValidity(chineseInput.value.trim() ? "" : "请填写中文姓名");
+    if (!playerInput.reportValidity() || !chineseInput.reportValidity()) return null;
+    corrections.push({ player, chineseName: chineseInput.value.trim() });
+  }
+  return corrections.length ? corrections : null;
+}
+
 function setupFeedbackForm() {
-  $("#feedback-form").addEventListener("submit", (event) => {
+  const form = $("#feedback-form");
+  const submitButton = form.querySelector('button[type="submit"]');
+  const status = $("#feedback-status");
+
+  $("#feedback-player-options").innerHTML = DATA.players.map((player) => `<option value="${escapeHtml(player.englishName)}">金${player.gold} 银${player.silver} 铜${player.bronze}</option>`).join("");
+  resetFeedbackNameRows();
+  syncFeedbackType();
+  $("#feedback-type").addEventListener("change", syncFeedbackType);
+  $("#feedback-add-name").addEventListener("click", () => {
+    const row = addFeedbackNameRow();
+    syncFeedbackType();
+    row.querySelector(".feedback-player-input").focus();
+  });
+
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const type = $("#feedback-type").value;
-    const subject = $("#feedback-subject").value.trim();
+    const typeLabel = FEEDBACK_TYPE_LABELS[type];
+    const corrections = type === "name" ? collectFeedbackNameCorrections() : [];
+    if (type === "name" && !corrections) return;
+    const subject = type === "name" ? `中文姓名补充/更正（${corrections.length}人）` : $("#feedback-subject").value.trim();
     const details = $("#feedback-details").value.trim();
-    const name = $("#feedback-name").value.trim() || "未填写";
+    const name = $("#feedback-name").value.trim() || "匿名访客";
     const source = $("#feedback-source").value.trim() || "未填写";
-    const title = `[网站反馈｜${type}] ${subject}`;
-    const body = [`### 反馈类型`, type, ``, `### 反馈内容`, details, ``, `### 资料链接`, source, ``, `### 反馈人`, name, ``, `### 提交页面`, window.location.href].join("\n");
-    const params = new URLSearchParams({ title, body });
-    window.location.href = `https://github.com/agoofans/wbf-china-medals/issues/new?${params.toString()}`;
+    const email = $("#feedback-email").value.trim();
+    const pageUrl = window.location.href;
+    const correctionText = corrections.map(({ player, chineseName }, index) => `${index + 1}. ${player.englishName} → ${chineseName}（现有奖牌：金${player.gold}、银${player.silver}、铜${player.bronze}）`).join("\n");
+    const feedbackBody = type === "name" ? ["姓名对应：", correctionText, "", `补充说明：${details || "未填写"}`] : [`简要标题：${subject}`, "", "详细说明：", details];
+    const payload = {
+      access_key: "adcd238c-9845-4229-9af8-6a3cd7a54dd8",
+      subject: `[WBF奖牌档案反馈｜${typeLabel}] ${subject}`,
+      from_name: "中国桥牌世界奖牌档案",
+      name,
+      message: [`反馈类型：${typeLabel}`, "", ...feedbackBody, "", `资料链接：${source}`, `反馈人：${name}`, `联系邮箱：${email || "未填写"}`, `提交页面：${pageUrl}`].join("\n"),
+      feedback_type: typeLabel,
+      feedback_title: subject,
+      source_url: source,
+      page_url: pageUrl,
+      botcheck: $("#feedback-botcheck").checked ? "spam" : "",
+    };
+    if (email) payload.email = email;
+
+    submitButton.disabled = true;
+    submitButton.textContent = "正在提交…";
+    status.dataset.state = "pending";
+    status.textContent = "正在发送反馈，请稍候。";
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) throw new Error(result.message || "提交未成功");
+      form.reset();
+      resetFeedbackNameRows();
+      syncFeedbackType();
+      status.dataset.state = "success";
+      status.textContent = "感谢反馈！内容已经成功提交。";
+    } catch (error) {
+      status.dataset.state = "error";
+      status.textContent = `提交失败：${error.message || "请稍后重试。"}`;
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = "提交反馈";
+    }
   });
 }
 
