@@ -19,6 +19,7 @@
         <span>中国桥牌世界奖牌档案</span>
       </a>
       <nav class="top-actions" aria-label="页面操作">
+        <a class="quiet-link" href="#feedback">反馈错漏</a>
         <a class="button button-light" href="#records">浏览数据</a>
       </nav>
     </header>
@@ -67,6 +68,25 @@
         </div>
       </section>
 
+      <section class="trend-section" aria-labelledby="trend-title">
+        <div class="trend-card">
+          <div class="trend-head">
+            <div>
+              <p class="kicker">MEDAL HISTORY</p>
+              <h2 id="trend-title">中国奖牌累计变化</h2>
+              <p>按获奖年份累计折算金、银、铜及总奖牌数；2023年的WBF未拆分历史调整在该节点统一计入。</p>
+            </div>
+            <div class="trend-legend" aria-label="图例">
+              <span><i class="legend-swatch gold-line"></i>金牌</span>
+              <span><i class="legend-swatch silver-line"></i>银牌</span>
+              <span><i class="legend-swatch bronze-line"></i>铜牌</span>
+              <span><i class="legend-swatch total-line"></i>总计</span>
+            </div>
+          </div>
+          <div id="medal-trend" class="trend-chart"></div>
+        </div>
+      </section>
+
       <section class="feature-grid">
         <article class="feature-card leaderboard-preview">
           <div class="card-head">
@@ -102,7 +122,6 @@
             <label><span>奖牌</span><select id="event-medal"><option value="">全部</option><option>金牌</option><option>银牌</option><option>铜牌</option></select></label>
             <label><span>年份</span><select id="event-year"><option value="">全部年份</option></select></label>
             <label><span>阵容</span><select id="event-foreign"><option value="">全部</option><option value="是">含外籍队友</option><option value="否">全CHN阵容</option></select></label>
-            <button id="export-events" class="button button-dark">导出筛选结果</button>
           </div>
           <div class="result-line"><strong id="event-count"></strong><span>点击任一记录查看完整阵容与来源</span></div>
           <div class="table-wrap"><table><thead><tr><th>时间 / 地点</th><th>赛事与项目</th><th>奖牌</th><th>获奖队 / 组合</th><th>中国份额</th></tr></thead><tbody id="event-table"></tbody></table></div>
@@ -123,12 +142,28 @@
 
         <section class="panel" data-panel="method" aria-label="统计口径">
           <div class="method-grid">
-            <div><p class="kicker">METHODOLOGY</p><h3>什么被计入，什么被排除</h3><p class="body-note">网站忠实保留工作簿中的严格口径、官方对齐项和放宽口径候选，不通过选择性纳入边赛来“凑数”。</p></div>
+            <div><p class="kicker">METHODOLOGY</p><h3>什么被计入，什么被排除</h3><p class="body-note">网站按统一口径整理正式世界锦标赛领奖台成绩，并保留每条记录的WBF结果来源。</p></div>
             <div id="method-list" class="method-list"></div>
           </div>
-          <div class="subsection"><h3>截至2023马拉喀什的官方对齐</h3><div id="alignment-table" class="alignment-grid"></div></div>
-          <div class="subsection"><h3>放宽口径候选</h3><div id="candidate-grid" class="candidate-grid"></div></div>
         </section>
+      </section>
+
+      <section id="feedback" class="feedback-section" aria-labelledby="feedback-title">
+        <div class="feedback-shell">
+          <div class="feedback-copy">
+            <p class="kicker">CONTRIBUTE</p>
+            <h2 id="feedback-title">发现错漏？请告诉我</h2>
+            <p>欢迎指出比赛记录、阵容、奖牌折算或中文姓名中的问题，也可以补充可靠的WBF页面、公报或国内桥牌资料。</p>
+          </div>
+          <form id="feedback-form" class="feedback-form">
+            <label><span>反馈类型</span><select id="feedback-type" required><option>数据错漏</option><option>补充中文姓名</option><option>补充赛事或来源</option><option>网站使用问题</option><option>其他</option></select></label>
+            <label><span>称呼（选填）</span><input id="feedback-name" type="text" maxlength="80" placeholder="您的姓名或昵称" /></label>
+            <label class="full-span"><span>简要标题</span><input id="feedback-subject" type="text" maxlength="160" required placeholder="例如：2018青年团体阵容可能漏了一位选手" /></label>
+            <label class="full-span"><span>详细说明</span><textarea id="feedback-details" rows="6" maxlength="4000" required placeholder="请说明具体记录、建议修改内容，以及判断依据。"></textarea></label>
+            <label class="full-span"><span>资料链接（选填）</span><input id="feedback-source" type="url" maxlength="500" placeholder="https://…" /></label>
+            <div class="feedback-submit full-span"><button class="button button-dark" type="submit">前往 GitHub 提交反馈</button><small>提交后将打开 GitHub Issue 页面；登录 GitHub 后确认发送。</small></div>
+          </form>
+        </div>
       </section>
     </main>
 

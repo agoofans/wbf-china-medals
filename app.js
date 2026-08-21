@@ -6,7 +6,6 @@ const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const text = (value) => value === null || value === undefined || value === "" ? "—" : String(value);
 const number = (value) => Number(value || 0).toFixed(2);
-const compactNumber = (value) => Number.isInteger(Number(value)) ? String(value) : Number(value).toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
 const medalClass = (medal) => medal?.includes("金") ? "gold" : medal?.includes("银") ? "silver" : "bronze";
 const escapeHtml = (value) => text(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
 const urls = (value) => String(value || "").split(/\n+/).map((item) => item.trim()).filter((item) => /^https?:\/\//.test(item));
@@ -24,6 +23,54 @@ function populateSummary() {
   $("#bronze-total").textContent = number(meta.officialAlignedEstimate.bronze);
   $("#medal-total").textContent = number(meta.officialAlignedEstimate.total);
   $("#scope-note-text").textContent = `逐项可落实到具体赛事的记录合计 ${number(meta.auditable.gold)} 金、${number(meta.auditable.silver)} 银、${number(meta.auditable.bronze)} 铜；另保留WBF截至2023年的国家级未拆分调整 0金、1银、5铜，不强行分配给项目或个人。`;
+}
+
+function renderMedalTrend() {
+  const eventYears = DATA.events.map((event) => Number(event.year)).filter(Number.isFinite);
+  const firstYear = Math.min(...eventYears);
+  const lastYear = Math.max(...eventYears);
+  const totals = { gold: 0, silver: 0, bronze: 0 };
+  const points = [];
+  for (let year = firstYear; year <= lastYear; year += 1) {
+    DATA.events.filter((event) => Number(event.year) === year).forEach((event) => {
+      totals.gold += Number(event.fraction?.gold || 0);
+      totals.silver += Number(event.fraction?.silver || 0);
+      totals.bronze += Number(event.fraction?.bronze || 0);
+    });
+    if (year === 2023) {
+      totals.gold += Number(DATA.meta.unallocatedHistoricalAdjustment?.gold || 0);
+      totals.silver += Number(DATA.meta.unallocatedHistoricalAdjustment?.silver || 0);
+      totals.bronze += Number(DATA.meta.unallocatedHistoricalAdjustment?.bronze || 0);
+    }
+    points.push({ year, ...totals, total: totals.gold + totals.silver + totals.bronze });
+  }
+
+  const width = 980;
+  const height = 430;
+  const plot = { left: 58, right: 24, top: 28, bottom: 48 };
+  const plotWidth = width - plot.left - plot.right;
+  const plotHeight = height - plot.top - plot.bottom;
+  const maxValue = Math.max(...points.map((point) => point.total));
+  const yMax = Math.ceil(maxValue / 20) * 20;
+  const x = (year) => plot.left + ((year - firstYear) / (lastYear - firstYear)) * plotWidth;
+  const y = (value) => plot.top + plotHeight - (value / yMax) * plotHeight;
+  const series = [
+    { key: "gold", label: "金牌", color: "#c7912f", width: 3 },
+    { key: "silver", label: "银牌", color: "#7b8796", width: 3 },
+    { key: "bronze", label: "铜牌", color: "#a8643c", width: 3 },
+    { key: "total", label: "总计", color: "#071b2e", width: 4 },
+  ];
+  const yTicks = Array.from({ length: 7 }, (_, index) => (yMax / 6) * index);
+  const xTicks = [...new Set([firstYear, 1995, 2000, 2005, 2010, 2015, 2020, 2023, lastYear].filter((year) => year >= firstYear && year <= lastYear))];
+  const grid = yTicks.map((value) => `<g><line x1="${plot.left}" y1="${y(value)}" x2="${width - plot.right}" y2="${y(value)}" class="chart-grid-line"/><text x="${plot.left - 11}" y="${y(value) + 4}" text-anchor="end" class="chart-axis-label">${Math.round(value)}</text></g>`).join("");
+  const years = xTicks.map((year) => `<text x="${x(year)}" y="${height - 17}" text-anchor="middle" class="chart-axis-label">${year}</text>`).join("");
+  const lines = series.map((item) => {
+    const path = points.map((point, index) => `${index ? "L" : "M"}${x(point.year).toFixed(2)},${y(point[item.key]).toFixed(2)}`).join(" ");
+    const last = points.at(-1);
+    return `<path d="${path}" fill="none" stroke="${item.color}" stroke-width="${item.width}" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${x(last.year)}" cy="${y(last[item.key])}" r="5" fill="${item.color}"><title>${item.label} ${last.year}：${number(last[item.key])}</title></circle>`;
+  }).join("");
+  const adjustmentX = x(2023);
+  $("#medal-trend").innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${firstYear}年至${lastYear}年中国累计金牌、银牌、铜牌和总奖牌数变化图"><g>${grid}<line x1="${adjustmentX}" y1="${plot.top}" x2="${adjustmentX}" y2="${plot.top + plotHeight}" class="adjustment-line"/><text x="${adjustmentX - 7}" y="${plot.top + 13}" text-anchor="end" class="adjustment-label">2023官方调整</text>${lines}${years}</g></svg>`;
 }
 
 function renderPreviews() {
@@ -61,7 +108,6 @@ function setupEventFilters() {
   });
   $("#event-prev").addEventListener("click", () => { state.eventPage -= 1; renderEvents(); });
   $("#event-next").addEventListener("click", () => { state.eventPage += 1; renderEvents(); });
-  $("#export-events").addEventListener("click", exportEvents);
 }
 
 function filteredEvents() {
@@ -132,8 +178,21 @@ function renderPlayers() {
 
 function renderMethod() {
   $("#method-list").innerHTML = DATA.methodology.map((item) => `<article class="method-row"><strong>${escapeHtml(item.item)}</strong><p>${escapeHtml(item.rule)}</p><p>${escapeHtml(item.handling)}</p><div class="source-list inline-sources">${sourceLinks(item.source)}</div></article>`).join("");
-  $("#alignment-table").innerHTML = DATA.alignment.map((item) => `<article class="alignment-card"><h4>${escapeHtml(item.step)}</h4><div class="alignment-numbers"><span>${compactNumber(item.gold)} 金</span><span>${compactNumber(item.silver)} 银</span><span>${compactNumber(item.bronze)} 铜</span></div><p>${escapeHtml(item.reason)}</p><div class="source-list inline-sources">${sourceLinks(item.source)}</div></article>`).join("");
-  $("#candidate-grid").innerHTML = DATA.candidates.map((item) => `<article class="candidate-card"><h4>${escapeHtml(item.type)} · ${escapeHtml(item.year)}</h4><p><strong>${escapeHtml(item.championship)}</strong><br />${escapeHtml(item.event)} · ${escapeHtml(item.medal)}</p><p>${escapeHtml(item.handling)}：${escapeHtml(item.reasoning)}</p><div class="source-list inline-sources">${sourceLinks(item.source)}</div></article>`).join("");
+}
+
+function setupFeedbackForm() {
+  $("#feedback-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const type = $("#feedback-type").value;
+    const subject = $("#feedback-subject").value.trim();
+    const details = $("#feedback-details").value.trim();
+    const name = $("#feedback-name").value.trim() || "未填写";
+    const source = $("#feedback-source").value.trim() || "未填写";
+    const title = `[网站反馈｜${type}] ${subject}`;
+    const body = [`### 反馈类型`, type, ``, `### 反馈内容`, details, ``, `### 资料链接`, source, ``, `### 反馈人`, name, ``, `### 提交页面`, window.location.href].join("\n");
+    const params = new URLSearchParams({ title, body });
+    window.location.href = `https://github.com/agoofans/wbf-china-medals/issues/new?${params.toString()}`;
+  });
 }
 
 function showEvent(uid) {
@@ -162,25 +221,14 @@ function setupDelegatedClicks() {
   $("#detail-dialog").addEventListener("click", (event) => { if (event.target === $("#detail-dialog")) $("#detail-dialog").close(); });
 }
 
-function exportEvents() {
-  const rows = filteredEvents();
-  const columns = ["记录ID", "比赛时间", "地点", "比赛名称", "项目", "名次", "奖牌", "获奖队/组合", "中国选手", "完整阵容", "中国份额", "WBF来源"];
-  const values = rows.map((item) => [item.recordId, item.date, item.location, item.championship, item.event, item.rank, item.medal, item.team, item.chinaPlayers, item.lineup, item.fraction?.chinaShare, item.source]);
-  const csvCell = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
-  const csv = "\ufeff" + [columns, ...values].map((row) => row.map(csvCell).join(",")).join("\r\n");
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-  link.download = "WBF中国选手获奖记录_筛选结果.csv";
-  link.click();
-  URL.revokeObjectURL(link.href);
-}
-
 populateSummary();
+renderMedalTrend();
 renderPreviews();
 setupTabs();
 setupEventFilters();
 setupPlayerFilters();
 setupDelegatedClicks();
+setupFeedbackForm();
 renderEvents();
 renderPlayers();
 renderMethod();
